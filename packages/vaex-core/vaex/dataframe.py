@@ -646,6 +646,9 @@ class DataFrame(object):
         if extra_expressions:
             extra_expressions = _ensure_strings_from_expressions(extra_expressions)
         expression_waslist, [expressions,] = vaex.utils.listify(expression)
+        for expression in expressions:
+            if expression and expression != "*":
+                self.validate_expression(expression)
         assert self._aggregator_nest_count == 0, "detected nested aggregator call"
         # Instead of 'expression is not None', we would like to have 'not virtual'
         # but in agg.py we do some casting, which results in calling .dtype(..) with a non-column
@@ -2849,8 +2852,12 @@ class DataFrame(object):
     def validate_expression(self, expression):
         """Validate an expression (may throw Exceptions)"""
         # return self.evaluate(expression, 0, 2)
-        vars = set(self.get_column_names()) | set(self.variables.keys())
-        funcs = set(expression_namespace.keys())
+        if str(expression) in self.virtual_columns:
+            return
+        if self.is_local() and str(expression) in self.columns:
+            return
+        vars = set(self.get_names(hidden=True))
+        funcs = set(expression_namespace.keys())  | set(self.functions.keys())
         return vaex.expresso.validate_expression(expression, vars, funcs)
 
     def _block_scope(self, i1, i2):
@@ -4708,6 +4715,9 @@ class DataFrame(object):
         else:
             binbys = [binby]
         binbys = _ensure_strings_from_expressions(binbys)
+        for expression in binbys:
+            if expression:
+                self.validate_expression(expression)
         binners = []
         if len(binbys):
             limits = _expand_limits(limits, len(binbys))
@@ -4896,6 +4906,7 @@ class DataFrameLocal(DataFrame):
                         depending.update(deps)
                 else:
                     # this might be an expression, create a valid name
+                    self.validate_expression(name)
                     expression = name
                     name = vaex.utils.find_valid_name(name)
                     # add the expression

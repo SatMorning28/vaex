@@ -19,6 +19,7 @@
       * Arguments to lazy function which are numpy arrays gets put in the variables [#573](https://github.com/vaexio/vaex/pull/573)
       * Executor does not block after failed/interrupted tasks. [#571](https://github.com/vaexio/vaex/pull/557)
       * Default limits (e.g. for plots) is minmax, so we don't miss outliers [#581](https://github.com/vaexio/vaex/pull/581)
+      * Give proper NameError when using non-existing column names [#299](https://github.com/vaexio/vaex/pull/299)
    * Features
       * New lazy numpy wrappers: np.digitize and np.searchsorted [#573](https://github.com/vaexio/vaex/pull/573)
 
